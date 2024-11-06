@@ -1,34 +1,42 @@
 import tkinter as tk
 import requests
+from PIL import Image, ImageTk
 
-# Функция для получения курсов криптовалют
-def get_c_prices():
-    url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,ripple&vs_currencies=usd"
+def get_crypto_prices():
+    url = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,litecoin,ripple,cardano&vs_currencies=usd'
     response = requests.get(url)
     data = response.json()
-    return data
 
-# Функция для обновления меток с курсами
-def update_prices():
-    prices = get_c_prices()
-    bitcoin_price.set(f"Bitcoin (BTC): ${prices['bitcoin']['usd']}")
-    ethereum_price.set(f"Ethereum (ЕТН): ${prices['ethereum']['usd']}")
-    ripple_price.set(f"Ripple (XRP): ${prices['ripple']['usd']}")
-    root.after(60000, update_prices)  # Обновление каждые 60 секунд
+    btc_price = data['bitcoin']['usd']
+    eth_price = data['ethereum']['usd']
+    ltc_price = data['litecoin']['usd']
+    xrp_price = data['ripple']['usd']
+    ada_price = data['cardano']['usd']
 
-# Создание основного окна приложения
+    price_label.config(
+        text=f"Bitcoin: ${btc_price}\nEthereum: ${eth_price}\nLitecoin: ${ltc_price}\nRipple: ${xrp_price}\nCardano: ${ada_price}")
+
 root = tk.Tk()
-root.title("Курсы криптовалюты")
+root.title("Курсы криптовалют")
+root.geometry("350x300+400+500")
+try:
+    logo_image = Image.open("лого1.png")
+    logo_image = logo_image.resize((80, 80))
+    logo_photo = ImageTk.PhotoImage(logo_image)
+    logo_label = tk.Label(root, image=logo_photo)
+    logo_label.image = logo_photo  # Чтобы избежать сборщика мусора
+    logo_label.pack(pady=10)
+except Exception as e:
+    print("Ошибка при загрузке логотипа:", e)
 
-# Переменные для хранения цен
-bitcoin_price = tk.StringVar()
-ethereum_price = tk.StringVar()
-ripple_price = tk.StringVar()
+# Метка для отображения курсов криптовалют
+price_label = tk.Label(root, text="", font=("Arial", 14), justify="center")
+price_label.pack(pady=20)
 
-# Создание меток для отображения цен
-tk.Label(root, textvariable=bitcoin_price, font=("Snap ITC", 16)).pack(pady=10)
-tk.Label(root, textvariable=ethereum_price, font=("Snap ITC", 16)).pack(pady=10)
-tk.Label(root, textvariable=ripple_price, font=("Snap ITC", 16)).pack(pady=10)
+# Кнопка для обновления курсов
+update_button = tk.Button(root, text="Обновить курсы", command=get_crypto_prices, font=("Arial", 12))
+update_button.pack(pady=10)
 
-# Первичное получение курсов и их отображение
-update_prices()
+# Запуск окна
+get_crypto_prices()  # Получаем курсы сразу при запуске
+root.mainloop()
